@@ -58,7 +58,9 @@ describe("HTTP server", () => {
       spaDir: tmp,
       port: 0,
     });
-    close = async () => { await fastify.close(); };
+    close = async () => {
+      await fastify.close();
+    };
     const res = await fetch(`http://127.0.0.1:${port}/session/state`);
     expect(res.status).toBe(200);
     const body = await res.json();

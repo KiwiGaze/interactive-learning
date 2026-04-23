@@ -1,0 +1,13 @@
+cards:
+  - id: c1
+    front: "Who opened the Silk Road for Han China?"
+    back: "Zhang Qian, envoy of Emperor Wu (c. 138 BCE)"
+  - id: c2
+    front: "Eastern terminus of the Silk Road?"
+    back: "Chang'an (modern Xi'an)"
+  - id: c3
+    front: "Name two goods moving west-to-east."
+    back: "Horses, glassware, gold, wool textiles"
+  - id: c4
+    front: "Name two goods moving east-to-west."
+    back: "Silk, paper, porcelain, spices"

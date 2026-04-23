@@ -1,7 +1,14 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.0/schema.json",
   "files": {
-    "ignore": ["**/dist/**", "**/node_modules/**", "**/.turbo/**", "**/coverage/**", ".claude/**"]
+    "ignore": [
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/.turbo/**",
+      "**/coverage/**",
+      ".claude/**",
+      "packages/mcp-server/spa/**"
+    ]
   },
   "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
   "linter": {

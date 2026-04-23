@@ -1,0 +1,25 @@
+# Python Decorators
+
+A decorator is a function that takes a function and returns another function. They wrap behavior (timing, logging, access control) around existing functions without modifying their source.
+
+## Example
+
+```python
+import functools, time
+
+def timer(fn):
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        t0 = time.perf_counter()
+        result = fn(*args, **kwargs)
+        print(f"{fn.__name__}: {time.perf_counter() - t0:.4f}s")
+        return result
+    return wrapper
+
+@timer
+def slow_add(a, b):
+    time.sleep(0.1)
+    return a + b
+```
+
+The `@timer` syntax is equivalent to `slow_add = timer(slow_add)`.

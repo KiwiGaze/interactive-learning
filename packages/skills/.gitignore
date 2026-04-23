@@ -1,0 +1,4 @@
+# Ignore compiled JS — except the final skill artifact that consumers copy
+dist/*.js
+dist/*.js.map
+dist/*.d.ts

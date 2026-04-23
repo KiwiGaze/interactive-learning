@@ -1,0 +1,24 @@
+questions:
+  - id: q1
+    kind: single_choice
+    prompt: "A function that takes a function and returns a function is called:"
+    options:
+      - id: a
+        label: "A callback"
+        is_correct: false
+      - id: b
+        label: "A higher-order function"
+        is_correct: true
+      - id: c
+        label: "A generator"
+        is_correct: false
+  - id: q2
+    kind: single_choice
+    prompt: "Which is bound to the class, not an instance?"
+    options:
+      - id: a
+        label: "@staticmethod"
+        is_correct: false
+      - id: b
+        label: "@classmethod"
+        is_correct: true
