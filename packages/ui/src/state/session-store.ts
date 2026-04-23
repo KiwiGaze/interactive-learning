@@ -6,6 +6,7 @@ interface SessionUiState {
   cursor: string;
   slots: SlotState[];
   connected: boolean;
+  sessionEnded: boolean;
   applySnapshot: (snap: SessionSnapshot) => void;
   onRemoteEvent: (e: EventEnvelope) => void;
   setConnected: (v: boolean) => void;
@@ -16,6 +17,7 @@ export const useSessionStore = create<SessionUiState>((set) => ({
   cursor: "",
   slots: [],
   connected: false,
+  sessionEnded: false,
   applySnapshot: (snap) =>
     set({
       sessionId: snap.id,
@@ -24,7 +26,11 @@ export const useSessionStore = create<SessionUiState>((set) => ({
       connected: snap.browser_connected,
     }),
   onRemoteEvent: (e) => {
-    set({ cursor: e.event_id });
+    if (e.type === "session.ended") {
+      set({ cursor: e.event_id, sessionEnded: true });
+    } else {
+      set({ cursor: e.event_id });
+    }
   },
   setConnected: (v) => set({ connected: v }),
 }));

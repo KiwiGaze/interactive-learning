@@ -36,4 +36,17 @@ describe("useSessionStore (zustand)", () => {
     });
     expect(useSessionStore.getState().cursor).toBe("018f-1");
   });
+
+  it("sets sessionEnded=true on session.ended event", () => {
+    useSessionStore.setState({ sessionEnded: false });
+    useSessionStore.getState().onRemoteEvent({
+      event_id: "018f-end",
+      timestamp: 1,
+      slot_id: "__session__",
+      slot_version: 0,
+      type: "session.ended",
+      payload: {},
+    });
+    expect(useSessionStore.getState().sessionEnded).toBe(true);
+  });
 });

@@ -46,4 +46,24 @@ describe("HTTP server", () => {
     expect(typeof address === "object" && address ? address.address : "").toBe("127.0.0.1");
     expect(port).toBeGreaterThan(0);
   });
+
+  it("exposes session snapshot at /session/state", async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "il-"));
+    await fs.writeFile(path.join(tmp, "index.html"), "ok");
+    const store = new SessionStore();
+    store.render({ type: "Quiz", props: {} });
+    const { fastify, port } = await buildHttpServer({
+      store,
+      catalog: new CatalogRegistry(),
+      spaDir: tmp,
+      port: 0,
+    });
+    close = async () => { await fastify.close(); };
+    const res = await fetch(`http://127.0.0.1:${port}/session/state`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    // quick sanity: has `slots` and `cursor`
+    expect(body).toHaveProperty("slots");
+    expect(body).toHaveProperty("cursor");
+  });
 });

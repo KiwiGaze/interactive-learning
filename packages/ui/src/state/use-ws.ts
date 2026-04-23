@@ -1,5 +1,6 @@
 import type { EventEnvelope } from "@interactive-learning/protocol";
 import { useEffect } from "react";
+import { fetchSessionSnapshot } from "./fetch-snapshot.js";
 import { useSessionStore } from "./session-store.js";
 
 declare global {
@@ -21,9 +22,15 @@ export function useSessionWebSocket(): void {
     function connect(): void {
       ws = new WebSocket(`ws://${location.host}/ws`);
       window.__il_ws = ws;
-      ws.onopen = () => {
+      ws.onopen = async () => {
         setConn(true);
         backoff = 500;
+        try {
+          const snap = await fetchSessionSnapshot();
+          useSessionStore.getState().applySnapshot(snap);
+        } catch {
+          // ignore — best-effort reconciliation
+        }
       };
       ws.onclose = () => {
         setConn(false);

@@ -22,6 +22,7 @@ export async function buildHttpServer(deps: HttpServerDeps): Promise<{
   });
 
   fastify.get("/healthz", async () => ({ ok: true, session: deps.store.id }));
+  fastify.get("/session/state", async () => deps.store.snapshot());
   fastify.get("/closed", async (_req, reply) => reply.sendFile("index.html"));
   fastify.setNotFoundHandler(async (_req, reply) => reply.sendFile("index.html"));
 
