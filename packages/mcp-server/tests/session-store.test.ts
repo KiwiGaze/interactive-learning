@@ -1,9 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { SessionStore } from "../src/session-store.js";
 
 describe("SessionStore", () => {
   let store: SessionStore;
-  beforeEach(() => { store = new SessionStore(); });
+  beforeEach(() => {
+    store = new SessionStore();
+  });
 
   it("renders a new slot with auto-generated id and version=1", () => {
     const { slot_id, cursor } = store.render({ type: "Quiz", props: { questions: [] } });
@@ -15,7 +17,12 @@ describe("SessionStore", () => {
   it("replace=true bumps version and drops in-flight events for that slot", () => {
     const { slot_id } = store.render({ type: "Quiz", props: {} });
     store.recordEvent({ slot_id, slot_version: 1, type: "quiz.x", payload: {} });
-    const { cursor } = store.render({ slot_id, type: "Quiz", props: { title: "v2" }, replace: true });
+    const { cursor } = store.render({
+      slot_id,
+      type: "Quiz",
+      props: { title: "v2" },
+      replace: true,
+    });
     expect(store.getSlot(slot_id)?.version).toBe(2);
     const tail = store.eventsAfter(cursor);
     expect(tail).toHaveLength(0);
@@ -35,10 +42,13 @@ describe("SessionStore", () => {
     expect(afterOk).not.toBe(cursorBefore);
 
     expect(() =>
-      store.update({ slot_id, patch: [
-        { op: "replace", path: "/title", value: "c" },
-        { op: "test", path: "/nonexistent", value: 1 },
-      ] }),
+      store.update({
+        slot_id,
+        patch: [
+          { op: "replace", path: "/title", value: "c" },
+          { op: "test", path: "/nonexistent", value: 1 },
+        ],
+      }),
     ).toThrow();
     expect(store.getSlot(slot_id)?.props).toMatchObject({ title: "b" });
     // Failed update must not emit a `component.updated` event nor advance cursor.
@@ -48,7 +58,9 @@ describe("SessionStore", () => {
   it("update runs validator before commit; validator rejection emits no event", () => {
     const { slot_id } = store.render({ type: "Quiz", props: { title: "a" } });
     const cursorBefore = store.currentCursor();
-    const reject = () => { throw new Error("ZOD_FAIL: bad props"); };
+    const reject = () => {
+      throw new Error("ZOD_FAIL: bad props");
+    };
     expect(() =>
       store.update({ slot_id, patch: [{ op: "replace", path: "/title", value: "b" }] }, reject),
     ).toThrow(/ZOD_FAIL/);
@@ -72,7 +84,12 @@ describe("SessionStore", () => {
   });
 
   it("eventsAfter returns CURSOR_EXPIRED when cursor was evicted", () => {
-    const firstCursor = store.recordEvent({ slot_id: "s", slot_version: 1, type: "e.x", payload: 0 }).event_id;
+    const firstCursor = store.recordEvent({
+      slot_id: "s",
+      slot_version: 1,
+      type: "e.x",
+      payload: 0,
+    }).event_id;
     for (let i = 0; i < 1005; i++) {
       store.recordEvent({ slot_id: "s", slot_version: 1, type: "e.x", payload: i + 1 });
     }
@@ -80,6 +97,8 @@ describe("SessionStore", () => {
   });
 
   it("eventsAfter with unknown-but-not-evicted cursor also returns CURSOR_EXPIRED", () => {
-    expect(() => store.eventsAfter("018f0000-0000-7000-8000-000000000000")).toThrow(/CURSOR_EXPIRED/);
+    expect(() => store.eventsAfter("018f0000-0000-7000-8000-000000000000")).toThrow(
+      /CURSOR_EXPIRED/,
+    );
   });
 });

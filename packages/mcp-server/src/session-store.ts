@@ -1,7 +1,7 @@
-import { v7 as uuidv7 } from "uuid";
+import type { EventEnvelope, SlotState } from "@interactive-learning/protocol";
 import { applyPatch } from "fast-json-patch";
 import type { Operation } from "fast-json-patch";
-import type { EventEnvelope, SlotState } from "@interactive-learning/protocol";
+import { v7 as uuidv7 } from "uuid";
 import { RingBuffer } from "./ring-buffer.js";
 
 export interface RenderArgs {
@@ -37,7 +37,9 @@ export class SessionStore {
     const existing = args.slot_id ? this.slots.get(args.slot_id) : undefined;
 
     if (args.slot_id && existing && !args.replace) {
-      const err = new Error("INVALID_OPERATION: slot exists; use update_component or set replace=true");
+      const err = new Error(
+        "INVALID_OPERATION: slot exists; use update_component or set replace=true",
+      );
       (err as { code?: string }).code = "INVALID_OPERATION";
       throw err;
     }
@@ -83,7 +85,9 @@ export class SessionStore {
         /*mutate*/ false,
       ).newDocument;
     } catch (cause) {
-      const err = new Error("INVALID_PATCH: " + (cause instanceof Error ? cause.message : String(cause)));
+      const err = new Error(
+        `INVALID_PATCH: ${cause instanceof Error ? cause.message : String(cause)}`,
+      );
       (err as { code?: string }).code = "INVALID_PATCH";
       throw err;
     }
