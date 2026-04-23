@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --radius: 0.5rem;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
