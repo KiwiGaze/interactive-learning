@@ -1,10 +1,14 @@
-import { RenderComponentInputSchema } from "@interactive-learning/protocol";
+import {
+  RenderComponentInputSchema,
+  UpdateComponentInputSchema,
+} from "@interactive-learning/protocol";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { CatalogRegistry } from "./catalog.js";
 import { SessionStore } from "./session-store.js";
 import { renderComponentHandler } from "./tools/render-component.js";
+import { updateComponentHandler } from "./tools/update-component.js";
 
 export interface BuildServerOptions {
   store?: SessionStore;
@@ -30,6 +34,11 @@ export function buildServer(opts: BuildServerOptions = {}): {
         description: "Render a semantic component in a slot (new, replace, or reject duplicate).",
         inputSchema: z.toJSONSchema(RenderComponentInputSchema),
       },
+      {
+        name: "update_component",
+        description: "Apply RFC 6902 JSON Patch to an existing slot's props.",
+        inputSchema: z.toJSONSchema(UpdateComponentInputSchema),
+      },
     ],
   }));
 
@@ -40,6 +49,14 @@ export function buildServer(opts: BuildServerOptions = {}): {
           store,
           catalog,
           input: (req.params.arguments ?? {}) as z.input<typeof RenderComponentInputSchema>,
+        });
+        return { content: [{ type: "text", text: JSON.stringify(out) }] };
+      }
+      case "update_component": {
+        const out = await updateComponentHandler({
+          store,
+          catalog,
+          input: (req.params.arguments ?? {}) as z.input<typeof UpdateComponentInputSchema>,
         });
         return { content: [{ type: "text", text: JSON.stringify(out) }] };
       }
