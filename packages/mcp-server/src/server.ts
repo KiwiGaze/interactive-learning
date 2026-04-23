@@ -1,6 +1,7 @@
 import {
   RenderComponentInputSchema,
   UpdateComponentInputSchema,
+  WaitForEventInputSchema,
 } from "@interactive-learning/protocol";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
@@ -9,6 +10,7 @@ import { CatalogRegistry } from "./catalog.js";
 import { SessionStore } from "./session-store.js";
 import { renderComponentHandler } from "./tools/render-component.js";
 import { updateComponentHandler } from "./tools/update-component.js";
+import { waitForEventHandler } from "./tools/wait-for-event.js";
 
 export interface BuildServerOptions {
   store?: SessionStore;
@@ -39,6 +41,11 @@ export function buildServer(opts: BuildServerOptions = {}): {
         description: "Apply RFC 6902 JSON Patch to an existing slot's props.",
         inputSchema: z.toJSONSchema(UpdateComponentInputSchema),
       },
+      {
+        name: "wait_for_event",
+        description: "Long-poll for events accumulated after since_cursor (max 30s).",
+        inputSchema: z.toJSONSchema(WaitForEventInputSchema),
+      },
     ],
   }));
 
@@ -57,6 +64,13 @@ export function buildServer(opts: BuildServerOptions = {}): {
           store,
           catalog,
           input: (req.params.arguments ?? {}) as z.input<typeof UpdateComponentInputSchema>,
+        });
+        return { content: [{ type: "text", text: JSON.stringify(out) }] };
+      }
+      case "wait_for_event": {
+        const out = await waitForEventHandler({
+          store,
+          input: (req.params.arguments ?? {}) as z.input<typeof WaitForEventInputSchema>,
         });
         return { content: [{ type: "text", text: JSON.stringify(out) }] };
       }
