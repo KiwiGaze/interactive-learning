@@ -6,7 +6,7 @@ import { buildServer } from "../src/server.js";
 describe("MCP server initialize", () => {
   it("responds to initialize with server info", async () => {
     const [clientT, serverT] = InMemoryTransport.createLinkedPair();
-    const server = buildServer();
+    const { server } = buildServer();
     await server.connect(serverT);
 
     const client = new Client({ name: "test", version: "0" });
