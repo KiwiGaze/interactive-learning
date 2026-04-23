@@ -43,7 +43,15 @@ export function useSessionWebSocket(): void {
       ws.onmessage = (msg) => {
         try {
           const data = JSON.parse(String(msg.data)) as { kind?: string; event?: EventEnvelope };
-          if (data.kind === "event" && data.event) onRemote(data.event);
+          if (data.kind !== "event" || !data.event) return;
+          onRemote(data.event);
+          if (data.event.type === "component.rendered" || data.event.type === "component.updated") {
+            void fetchSessionSnapshot()
+              .then((snap) => useSessionStore.getState().applySnapshot(snap))
+              .catch(() => {
+                // best-effort reconcile; next event or reconnect will retry
+              });
+          }
         } catch {
           // ignore malformed frames
         }

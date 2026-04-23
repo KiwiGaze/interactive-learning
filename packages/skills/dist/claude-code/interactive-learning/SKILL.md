@@ -69,7 +69,7 @@ reason?: string  — optional exit note
 ## Resources
 
 - `catalog://components` — JSON array of `{ type, propsSchema }` objects describing every renderable component.
-- `session://state` — current session snapshot (rendered slots, event log).
+- `session://current/state` — current session snapshot (rendered slots, event log).
 
 ## Course pack layout
 
