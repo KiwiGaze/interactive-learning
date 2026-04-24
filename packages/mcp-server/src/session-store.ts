@@ -1,5 +1,5 @@
 import type { EventEnvelope, SlotState } from "@interactive-learning/protocol";
-import { applyPatch } from "fast-json-patch";
+import jsonPatch from "fast-json-patch";
 import type { Operation } from "fast-json-patch";
 import { v7 as uuidv7 } from "uuid";
 import { RingBuffer } from "./ring-buffer.js";
@@ -78,7 +78,7 @@ export class SessionStore {
     // Phase 1: compute + validate. No state mutation, no event, no cursor advance.
     let next: unknown;
     try {
-      next = applyPatch(
+      next = jsonPatch.applyPatch(
         structuredClone(slot.props),
         args.patch as Operation[],
         /*validate*/ true,
@@ -117,7 +117,12 @@ export class SessionStore {
   }
 
   eventsAfter(since: string | undefined): readonly EventEnvelope[] {
-    if (!since) return this.events.toArray();
+    if (since === undefined) return this.events.toArray();
+    if (since === "") {
+      const err = new Error("CURSOR_EXPIRED: empty cursor is invalid");
+      (err as { code?: string }).code = "CURSOR_EXPIRED";
+      throw err;
+    }
     const arr = this.events.toArray();
     const idx = arr.findIndex((e) => e.event_id === since);
     if (idx < 0) {

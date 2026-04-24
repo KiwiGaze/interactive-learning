@@ -8,7 +8,7 @@ describe("end_session", () => {
     const before = store.currentCursor();
     const out = await endSessionHandler({ store, input: { reason: "done" } });
     expect(out).toEqual({});
-    const evs = store.eventsAfter(before);
+    const evs = before === "" ? store.eventsAfter(undefined) : store.eventsAfter(before);
     expect(evs.map((e) => e.type)).toContain("session.ended");
     const ended = evs.find((e) => e.type === "session.ended");
     expect(ended).toBeDefined();

@@ -69,11 +69,16 @@ describe("SessionStore", () => {
   });
 
   it("cursor advances monotonically; events never missed", () => {
-    const start = store.currentCursor();
     const a = store.recordEvent({ slot_id: "s", slot_version: 1, type: "e.a", payload: {} });
     const b = store.recordEvent({ slot_id: "s", slot_version: 1, type: "e.b", payload: {} });
     expect(a.event_id < b.event_id).toBe(true);
-    expect(store.eventsAfter(start).map((e) => e.type)).toEqual(["e.a", "e.b"]);
+    expect(store.eventsAfter(undefined).map((e) => e.type)).toEqual(["e.a", "e.b"]);
+    expect(store.eventsAfter(a.event_id).map((e) => e.type)).toEqual(["e.b"]);
+  });
+
+  it("eventsAfter rejects empty string cursors", () => {
+    store.recordEvent({ slot_id: "s", slot_version: 1, type: "e.a", payload: {} });
+    expect(() => store.eventsAfter("")).toThrow(/CURSOR_EXPIRED/);
   });
 
   it("ring buffer capacity = 1000", () => {

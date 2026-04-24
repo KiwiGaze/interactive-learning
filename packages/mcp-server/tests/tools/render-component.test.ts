@@ -65,4 +65,18 @@ describe("render_component handler", () => {
     });
     expect(store.getSlot(slot_id)?.version).toBe(2);
   });
+
+  it("passes parent_slot into rendered slot state", async () => {
+    const { slot_id } = await renderComponentHandler({
+      store,
+      catalog,
+      input: {
+        parent_slot: "parent-1",
+        type: "Quiz",
+        props: { questions: [] },
+      },
+    });
+
+    expect(store.getSlot(slot_id)?.parent_slot).toBe("parent-1");
+  });
 });

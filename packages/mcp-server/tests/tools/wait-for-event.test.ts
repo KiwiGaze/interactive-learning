@@ -12,10 +12,9 @@ describe("wait_for_event handler", () => {
 
   it("returns immediately if events already exist after cursor", async () => {
     store.recordEvent({ slot_id: "s", slot_version: 1, type: "quiz.x", payload: {} });
-    const since = "";
     const out = await waitForEventHandler({
       store,
-      input: { since_cursor: since, timeout_ms: 100 },
+      input: { timeout_ms: 100 },
     });
     expect(out.events.length).toBeGreaterThan(0);
     const last = out.events.at(-1);
@@ -36,7 +35,7 @@ describe("wait_for_event handler", () => {
     const before = store.currentCursor();
     const out = await waitForEventHandler({
       store,
-      input: { since_cursor: before, timeout_ms: 50 },
+      input: { timeout_ms: 50 },
     });
     expect(out.events).toEqual([]);
     expect(out.next_cursor).toBe(before);
@@ -55,5 +54,11 @@ describe("wait_for_event handler", () => {
     await expect(
       waitForEventHandler({ store, input: { since_cursor: "018f-stale-cursor", timeout_ms: 50 } }),
     ).rejects.toMatchObject({ code: "CURSOR_EXPIRED" });
+  });
+
+  it("rejects empty since_cursor at the schema boundary", async () => {
+    await expect(
+      waitForEventHandler({ store, input: { since_cursor: "", timeout_ms: 50 } }),
+    ).rejects.toBeDefined();
   });
 });

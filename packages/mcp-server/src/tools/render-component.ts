@@ -24,6 +24,7 @@ export async function renderComponentHandler(deps: {
       props: validatedProps,
     };
     if (parsed.slot_id !== undefined) args.slot_id = parsed.slot_id;
+    if (parsed.parent_slot !== undefined) args.parent_slot = parsed.parent_slot;
     if (parsed.replace !== undefined) args.replace = parsed.replace;
     return store.render(args);
   } catch (cause) {
