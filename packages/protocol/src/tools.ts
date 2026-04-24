@@ -11,6 +11,7 @@ export type JsonPatchOp = z.infer<typeof JsonPatchOpSchema>;
 
 export const RenderComponentInputSchema = z.object({
   slot_id: z.string().min(1).optional(),
+  parent_slot: z.string().min(1).optional(),
   type: z.string().min(1),
   props: z.unknown(),
   replace: z.boolean().optional(),
@@ -33,7 +34,7 @@ export const UpdateComponentOutputSchema = z.object({ cursor: z.string() });
 export type UpdateComponentOutput = z.infer<typeof UpdateComponentOutputSchema>;
 
 export const WaitForEventInputSchema = z.object({
-  since_cursor: z.string().optional(),
+  since_cursor: z.string().min(1).optional(),
   timeout_ms: z.number().int().min(0).max(30_000).default(25_000),
 });
 export type WaitForEventInput = z.infer<typeof WaitForEventInputSchema>;
