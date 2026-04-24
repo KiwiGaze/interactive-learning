@@ -2,9 +2,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerDefaultCatalog } from "./catalog-bindings.js";
+import { CatalogRegistry } from "./catalog.js";
 import { IdleWatchdog, Lifecycle } from "./lifecycle.js";
 import { createLogger } from "./log.js";
 import { buildServer } from "./server.js";
+import { SessionStore } from "./session-store.js";
 
 export function registerSignalHandlers(shutdown: (code: number) => void): () => void {
   const onSignal = (): void => shutdown(0);
@@ -18,20 +20,13 @@ export function registerSignalHandlers(shutdown: (code: number) => void): () => 
 
 export async function main(): Promise<void> {
   const log = createLogger();
-  const lifecycleRef: { current?: Lifecycle } = {};
-  const { server, store, catalog } = buildServer({
-    onRenderComponent: async () => {
-      if (!lifecycleRef.current) throw new Error("Lifecycle not initialized");
-      await lifecycleRef.current.ensureHttp();
-    },
-  });
+  const store = new SessionStore();
+  const catalog = new CatalogRegistry();
   registerDefaultCatalog(catalog);
 
   const here = path.dirname(fileURLToPath(import.meta.url));
   const spaDir = path.resolve(here, "..", "spa");
   const lifecycle = new Lifecycle({ spaDir, store, catalog });
-  lifecycleRef.current = lifecycle;
-
   const watchdog = new IdleWatchdog(store, {
     warnMs: 25 * 60_000,
     terminateMs: 30 * 60_000,
@@ -42,6 +37,14 @@ export async function main(): Promise<void> {
     },
   });
   watchdog.start();
+  const { server } = buildServer({
+    store,
+    catalog,
+    beforeToolCall: async () => {
+      watchdog.ping();
+      await lifecycle.ensureHttp();
+    },
+  });
 
   async function shutdown(code: number): Promise<void> {
     try {

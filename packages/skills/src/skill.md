@@ -9,12 +9,14 @@ The interactive-learning MCP server exposes tools and resources that let you del
 ## Consumer loop
 
 1. Read `catalog://components` (resource) to discover available component types and their props schemas.
-2. Call `start_lesson` with the lesson id to initialize a session and receive the lesson meta.
-3. Present the lesson narrative from `index.mdx` as markdown prose.
-4. When you reach a quiz or flashcard moment, call `render_component` with the appropriate type and props.
-5. Call `wait_for_event` (up to 25 s) to receive the learner's interaction (answer submission, card flip).
-6. Respond to their answer — confirm correct answers, explain incorrect ones — then continue.
-7. Call `end_session` when the lesson objectives are complete.
+2. If the user invokes the MCP prompt `start_lesson`, pass it the absolute lesson path and follow the returned instructions.
+3. Read the course pack files yourself: `meta.mjs` or `meta.ts`, `index.mdx`, and any referenced YAML side-cars.
+4. Present the lesson narrative from `index.mdx` as markdown prose.
+5. When you reach a quiz or flashcard moment, call `render_component` with the appropriate type and props.
+6. Call `wait_for_event` (up to 25 s) to receive the learner's interaction (answer submission, card flip).
+7. Use `update_component` when the current rendered component should change in place.
+8. Respond to their answer — confirm correct answers, explain incorrect ones — then continue.
+9. Call `end_session` when the lesson objectives are complete.
 
 ## Tools
 

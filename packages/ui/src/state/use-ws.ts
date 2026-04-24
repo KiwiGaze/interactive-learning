@@ -1,6 +1,7 @@
 import type { EventEnvelope } from "@interactive-learning/protocol";
 import { useEffect } from "react";
 import { fetchSessionSnapshot } from "./fetch-snapshot.js";
+import { createQueuedReconciler } from "./reconciler.js";
 import { useSessionStore } from "./session-store.js";
 
 declare global {
@@ -18,21 +19,6 @@ export function useSessionWebSocket(): void {
     let ws: WebSocket | null = null;
     let backoff = 500;
     let closed = false;
-    let reconcilePromise: Promise<void> | undefined;
-
-    function reconcileSnapshot(activeSocket: WebSocket): Promise<void> {
-      reconcilePromise ??= fetchSessionSnapshot()
-        .then((snap) => {
-          if (!closed && ws === activeSocket) useSessionStore.getState().applySnapshot(snap);
-        })
-        .catch(() => {
-          // best-effort reconcile; next event or reconnect will retry
-        })
-        .finally(() => {
-          reconcilePromise = undefined;
-        });
-      return reconcilePromise;
-    }
 
     function connect(): void {
       const cursor = useSessionStore.getState().cursor;
@@ -40,10 +26,15 @@ export function useSessionWebSocket(): void {
       ws = new WebSocket(`ws://${location.host}/ws${since}`);
       window.__il_ws = ws;
       const activeSocket = ws;
+      const reconcileSnapshot = createQueuedReconciler({
+        fetchSnapshot: fetchSessionSnapshot,
+        applySnapshot: (snap) => useSessionStore.getState().applySnapshot(snap),
+        isActive: () => !closed && ws === activeSocket,
+      });
       ws.onopen = async () => {
         setConn(true);
         backoff = 500;
-        await reconcileSnapshot(activeSocket);
+        await reconcileSnapshot();
       };
       ws.onclose = () => {
         setConn(false);
@@ -59,7 +50,7 @@ export function useSessionWebSocket(): void {
           if (data.kind !== "event" || !data.event) return;
           onRemote(data.event);
           if (data.event.type === "component.rendered" || data.event.type === "component.updated") {
-            void reconcileSnapshot(activeSocket);
+            void reconcileSnapshot();
           }
         } catch {
           // ignore malformed frames

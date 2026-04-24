@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { requireOwnKeys } from "../required-fields.js";
 
 export const QuizPropsSchema = z.object({
   title: z.string().optional(),
@@ -26,7 +27,10 @@ export const QuizPropsSchema = z.object({
 export type QuizProps = z.infer<typeof QuizPropsSchema>;
 
 export const QuizEventSchemas = {
-  "quiz.answer_submitted": z.object({ question_id: z.string(), value: z.unknown() }),
+  "quiz.answer_submitted": requireOwnKeys(
+    z.object({ question_id: z.string(), value: z.unknown() }),
+    ["value"],
+  ),
   "quiz.all_submitted": z.object({ answers: z.record(z.string(), z.unknown()) }),
   "quiz.explanation_shown": z.object({ question_id: z.string() }),
 } as const;

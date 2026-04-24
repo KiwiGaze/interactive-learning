@@ -36,4 +36,15 @@ describe("buildSkills", () => {
     expect(body).toContain("quiz.all_submitted");
     expect(body).not.toContain("quiz_answer");
   });
+
+  it("documents the real lesson startup flow", async () => {
+    const body = await fs.readFile(path.resolve(process.cwd(), "src/skill.md"), "utf8");
+
+    expect(body).not.toContain("Call `start_lesson` with the lesson id");
+    expect(body).toContain("MCP prompt `start_lesson`");
+    expect(body).toContain("meta.mjs` or `meta.ts");
+    expect(body).toContain("index.mdx");
+    expect(body).toContain("YAML side-cars");
+    expect(body).toContain("update_component");
+  });
 });

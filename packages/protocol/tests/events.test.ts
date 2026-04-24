@@ -26,6 +26,19 @@ describe("EventEnvelopeSchema", () => {
     ).toThrow();
   });
 
+  it("requires the payload key while accepting explicit undefined", () => {
+    const envelope = {
+      event_id: "018f6a1e-0000-7000-8000-000000000001",
+      timestamp: 1713800000000,
+      slot_id: "slot-1",
+      slot_version: 1,
+      type: "quiz.answer_submitted",
+    };
+
+    expect(() => EventEnvelopeSchema.parse(envelope)).toThrow();
+    expect(EventEnvelopeSchema.parse({ ...envelope, payload: undefined }).payload).toBeUndefined();
+  });
+
   it("exports reserved prefixes for namespace guarding", () => {
     expect(RESERVED_EVENT_PREFIXES).toEqual(["component.", "session."]);
   });

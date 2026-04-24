@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { EventEnvelopeSchema } from "./events.js";
+import { requireOwnKeys } from "./required-fields.js";
 
 export const JsonPatchOpSchema = z.object({
   op: z.enum(["add", "remove", "replace", "move", "copy", "test"]),
@@ -9,14 +10,17 @@ export const JsonPatchOpSchema = z.object({
 });
 export type JsonPatchOp = z.infer<typeof JsonPatchOpSchema>;
 
-export const RenderComponentInputSchema = z.object({
-  slot_id: z.string().min(1).optional(),
-  parent_slot: z.string().min(1).optional(),
-  type: z.string().min(1),
-  props: z.unknown(),
-  replace: z.boolean().optional(),
-});
-export type RenderComponentInput = z.infer<typeof RenderComponentInputSchema>;
+export const RenderComponentInputSchema = requireOwnKeys(
+  z.object({
+    slot_id: z.string().min(1).optional(),
+    parent_slot: z.string().min(1).optional(),
+    type: z.string().min(1),
+    props: z.unknown(),
+    replace: z.boolean().optional(),
+  }),
+  ["props"],
+);
+export type RenderComponentInput = z.infer<typeof RenderComponentInputSchema> & { props: unknown };
 
 export const RenderComponentOutputSchema = z.object({
   slot_id: z.string(),

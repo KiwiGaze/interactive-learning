@@ -11,6 +11,15 @@ describe("tool I/O schemas", () => {
     expect(() => RenderComponentInputSchema.parse({ type: "Quiz", props: {} })).not.toThrow();
   });
 
+  it("render_component requires the props key even though props may be opaque", () => {
+    expect(() => RenderComponentInputSchema.parse({ type: "Quiz" })).toThrow();
+    expect(RenderComponentInputSchema.parse({ type: "Quiz", props: undefined })).toEqual({
+      type: "Quiz",
+      props: undefined,
+    });
+    expect(RenderComponentInputSchema.parse({ type: "Quiz", props: null }).props).toBeNull();
+  });
+
   it("render_component accepts optional parent_slot", () => {
     const parsed = RenderComponentInputSchema.parse({
       parent_slot: "parent",

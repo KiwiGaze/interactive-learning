@@ -1,11 +1,19 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { LessonMetaSchema } from "@interactive-learning/protocol";
+import {
+  FlashCardPropsSchema,
+  LessonMetaSchema,
+  QuizPropsSchema,
+} from "@interactive-learning/protocol";
 import YAML from "yaml";
 import { ZodError } from "zod";
 
 const INTERACTIVE_COMPONENT_RE = /<(Quiz|Hint|StepByStep|FlashCard|Diagram)\b/;
+const SIDE_CAR_SCHEMAS: Record<string, { parse: (value: unknown) => unknown }> = {
+  "quiz.yaml": QuizPropsSchema,
+  "flashcards.yaml": FlashCardPropsSchema,
+};
 
 export interface ValidationError {
   path: ReadonlyArray<string | number>;
@@ -35,10 +43,7 @@ export async function validateLesson(lessonDir: string): Promise<ValidationResul
       LessonMetaSchema.parse(mod.default ?? mod);
     } catch (e) {
       if (e instanceof ZodError) {
-        for (const iss of e.issues) {
-          const issuePath = iss.path.filter((part) => typeof part !== "symbol");
-          errors.push({ path: issuePath, message: iss.message, source: "meta" });
-        }
+        pushZodIssues(errors, "meta", [], e);
       } else {
         errors.push({ path: [], message: String(e), source: "meta" });
       }
@@ -59,17 +64,43 @@ export async function validateLesson(lessonDir: string): Promise<ValidationResul
     }
   }
 
-  for (const file of ["quiz.yaml", "flashcards.yaml"]) {
+  for (const [file, schema] of Object.entries(SIDE_CAR_SCHEMAS)) {
     const abs = path.join(lessonDir, file);
     if (!(await exists(abs))) continue;
     try {
-      YAML.parse(await fs.readFile(abs, "utf8"));
+      const parsed = YAML.parse(await fs.readFile(abs, "utf8")) as unknown;
+      schema.parse(parsed);
     } catch (e) {
-      errors.push({ path: [file], message: String(e), source: "yaml" });
+      if (e instanceof ZodError) {
+        pushZodIssues(errors, "yaml", [file], e);
+      } else {
+        errors.push({ path: [file], message: String(e), source: "yaml" });
+      }
     }
   }
 
   return { ok: errors.length === 0, errors, warnings };
+}
+
+function pushZodIssues(
+  errors: ValidationError[],
+  source: string,
+  pathPrefix: ReadonlyArray<string | number>,
+  error: ZodError,
+): void {
+  for (const issue of error.issues) {
+    errors.push({
+      path: [...pathPrefix, ...toValidationPath(issue.path)],
+      message: issue.message,
+      source,
+    });
+  }
+}
+
+function toValidationPath(pathParts: readonly unknown[]): Array<string | number> {
+  return pathParts.filter((part): part is string | number => {
+    return typeof part === "string" || typeof part === "number";
+  });
 }
 
 async function exists(p: string): Promise<boolean> {

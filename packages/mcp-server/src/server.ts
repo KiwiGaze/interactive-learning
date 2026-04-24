@@ -27,8 +27,14 @@ import { waitForEventHandler } from "./tools/wait-for-event.js";
 export interface BuildServerOptions {
   store?: SessionStore;
   catalog?: CatalogRegistry;
-  onRenderComponent?: () => Promise<void>;
+  beforeToolCall?: (toolName: SessionToolName) => Promise<void>;
 }
+
+export type SessionToolName =
+  | "render_component"
+  | "update_component"
+  | "wait_for_event"
+  | "end_session";
 
 export function buildServer(opts: BuildServerOptions = {}): {
   server: Server;
@@ -70,15 +76,16 @@ export function buildServer(opts: BuildServerOptions = {}): {
   server.setRequestHandler(CallToolRequestSchema, async (req) => {
     switch (req.params.name) {
       case "render_component": {
+        await opts.beforeToolCall?.("render_component");
         const out = await renderComponentHandler({
           store,
           catalog,
           input: (req.params.arguments ?? {}) as z.input<typeof RenderComponentInputSchema>,
         });
-        await opts.onRenderComponent?.();
         return { content: [{ type: "text", text: JSON.stringify(out) }] };
       }
       case "update_component": {
+        await opts.beforeToolCall?.("update_component");
         const out = await updateComponentHandler({
           store,
           catalog,
@@ -87,6 +94,7 @@ export function buildServer(opts: BuildServerOptions = {}): {
         return { content: [{ type: "text", text: JSON.stringify(out) }] };
       }
       case "wait_for_event": {
+        await opts.beforeToolCall?.("wait_for_event");
         const out = await waitForEventHandler({
           store,
           input: (req.params.arguments ?? {}) as z.input<typeof WaitForEventInputSchema>,
@@ -94,6 +102,7 @@ export function buildServer(opts: BuildServerOptions = {}): {
         return { content: [{ type: "text", text: JSON.stringify(out) }] };
       }
       case "end_session": {
+        await opts.beforeToolCall?.("end_session");
         const out = await endSessionHandler({
           store,
           input: (req.params.arguments ?? {}) as z.input<typeof EndSessionInputSchema>,

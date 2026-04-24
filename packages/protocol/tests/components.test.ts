@@ -26,4 +26,24 @@ describe("Quiz schema", () => {
       }),
     ).not.toThrow();
   });
+
+  it("answer_submitted requires the value key while accepting opaque values", () => {
+    expect(() =>
+      QuizEventSchemas["quiz.answer_submitted"].parse({
+        question_id: "q1",
+      }),
+    ).toThrow();
+    expect(
+      QuizEventSchemas["quiz.answer_submitted"].parse({
+        question_id: "q1",
+        value: undefined,
+      }).value,
+    ).toBeUndefined();
+    expect(
+      QuizEventSchemas["quiz.answer_submitted"].parse({
+        question_id: "q1",
+        value: null,
+      }).value,
+    ).toBeNull();
+  });
 });
