@@ -10,8 +10,9 @@ An MCP-server middleware + browser SPA that lets local AI coding agents (Claude 
    ```bash
    claude mcp add interactive-learning -- npx -y @interactive-learning/mcp-server
    ```
-2. **Install the skill** (one-time):
+2. **Build and install the skill** (one-time):
    ```bash
+   pnpm --filter @interactive-learning/skills build
    cp -r packages/skills/dist/claude-code/interactive-learning ~/.claude/skills/
    ```
 3. **Start a lesson** from inside your agent:
@@ -58,8 +59,9 @@ Apache 2.0 (suggested).
    ```bash
    claude mcp add interactive-learning -- npx -y @interactive-learning/mcp-server
    ```
-2. 安装技能（一次性）：
+2. 构建并安装技能（一次性）：
    ```bash
+   pnpm --filter @interactive-learning/skills build
    cp -r packages/skills/dist/claude-code/interactive-learning ~/.claude/skills/
    ```
 3. 启动课程：

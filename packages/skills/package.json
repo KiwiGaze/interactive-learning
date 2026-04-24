@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "type": "module",
   "private": true,
+  "files": ["dist", "src/skill.md"],
+  "exports": {
+    ".": "./dist/claude-code/interactive-learning/SKILL.md"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json && node dist/build.js",
     "test": "vitest run",

@@ -20,4 +20,20 @@ describe("buildSkills", () => {
     expect(body).toMatch(/^---\nname: interactive-learning/);
     expect(body).toMatch(/Consumer loop/);
   });
+
+  it("package metadata exposes generated skill output", async () => {
+    const raw = await fs.readFile(path.resolve(process.cwd(), "package.json"), "utf8");
+    const packageJson = JSON.parse(raw) as { files?: string[]; exports?: Record<string, string> };
+
+    expect(packageJson.files).toEqual(["dist", "src/skill.md"]);
+    expect(packageJson.exports?.["."]).toBe("./dist/claude-code/interactive-learning/SKILL.md");
+  });
+
+  it("documents protocol quiz event names", async () => {
+    const body = await fs.readFile(path.resolve(process.cwd(), "src/skill.md"), "utf8");
+
+    expect(body).toContain("quiz.answer_submitted");
+    expect(body).toContain("quiz.all_submitted");
+    expect(body).not.toContain("quiz_answer");
+  });
 });

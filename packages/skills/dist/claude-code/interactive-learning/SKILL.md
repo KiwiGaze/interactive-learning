@@ -56,7 +56,12 @@ since_cursor?: string  — poll only for events after this cursor
 timeout_ms?: number    — default 25000, max 30000
 ```
 
-Returns `{ events, next_cursor }`. Events carry `type` and `payload`; quiz submissions have `type: "quiz_answer"`.
+Returns `{ events, next_cursor }`. Events carry `type` and `payload`.
+
+Quiz events:
+
+- `quiz.answer_submitted` with payload `{ question_id: string, value: unknown }`
+- `quiz.all_submitted` with payload `{ answers: Record<string, unknown> }`
 
 ### end_session
 
