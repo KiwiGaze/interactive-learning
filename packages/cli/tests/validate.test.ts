@@ -11,7 +11,7 @@ describe("validateLesson", () => {
       path.join(dir, "meta.mjs"),
       `export default { id: "x", title: "X", summary: "s", objectives: ["a"], est_minutes: 5 };`,
     );
-    await fs.writeFile(path.join(dir, "index.mdx"), "# Hello");
+    await fs.writeFile(path.join(dir, "index.mdx"), '# Hello\n\n<Hint content="Try it" />');
     const result = await validateLesson(dir);
     expect(result.ok).toBe(true);
   });
@@ -23,5 +23,21 @@ describe("validateLesson", () => {
     const result = await validateLesson(dir);
     expect(result.ok).toBe(false);
     expect(result.errors.some((e) => e.path.join(".").includes("objectives"))).toBe(true);
+  });
+
+  it("requires an interactive component in index.mdx", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "il-"));
+    await fs.writeFile(
+      path.join(dir, "meta.mjs"),
+      `export default { id: "x", title: "X", summary: "s", objectives: ["a"], est_minutes: 5 };`,
+    );
+    await fs.writeFile(path.join(dir, "index.mdx"), "# Hi");
+
+    const result = await validateLesson(dir);
+
+    expect(result.ok).toBe(false);
+    expect(result.errors.some((error) => error.message.includes("interactive component"))).toBe(
+      true,
+    );
   });
 });

@@ -3,6 +3,9 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { LessonMetaSchema } from "@interactive-learning/protocol";
 import YAML from "yaml";
+import { ZodError } from "zod";
+
+const INTERACTIVE_COMPONENT_RE = /<(Quiz|Hint|StepByStep|FlashCard|Diagram)\b/;
 
 export interface ValidationError {
   path: ReadonlyArray<string | number>;
@@ -31,12 +34,10 @@ export async function validateLesson(lessonDir: string): Promise<ValidationResul
       const mod = (await import(pathToFileURL(metaFile).href)) as { default?: unknown };
       LessonMetaSchema.parse(mod.default ?? mod);
     } catch (e) {
-      if (e && typeof e === "object" && "issues" in e) {
-        const issues = (
-          e as { issues: Array<{ path: ReadonlyArray<string | number>; message: string }> }
-        ).issues;
-        for (const iss of issues) {
-          errors.push({ path: iss.path, message: iss.message, source: "meta" });
+      if (e instanceof ZodError) {
+        for (const iss of e.issues) {
+          const issuePath = iss.path.filter((part) => typeof part !== "symbol");
+          errors.push({ path: issuePath, message: iss.message, source: "meta" });
         }
       } else {
         errors.push({ path: [], message: String(e), source: "meta" });
@@ -44,8 +45,18 @@ export async function validateLesson(lessonDir: string): Promise<ValidationResul
     }
   }
 
-  if (!(await exists(path.join(lessonDir, "index.mdx")))) {
+  const mdxFile = path.join(lessonDir, "index.mdx");
+  if (!(await exists(mdxFile))) {
     errors.push({ path: [], message: "index.mdx missing", source: "mdx" });
+  } else {
+    const content = await fs.readFile(mdxFile, "utf8");
+    if (!INTERACTIVE_COMPONENT_RE.test(content)) {
+      errors.push({
+        path: [],
+        message: "index.mdx must include at least one interactive component",
+        source: "mdx",
+      });
+    }
   }
 
   for (const file of ["quiz.yaml", "flashcards.yaml"]) {
