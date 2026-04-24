@@ -4,9 +4,9 @@ import { cn } from "../../lib/utils.js";
 export type BadgeVariant = "default" | "secondary" | "outline";
 
 const badgeClasses: Record<BadgeVariant, string> = {
-  default: "bg-slate-900 text-white",
-  secondary: "bg-slate-100 text-slate-900",
-  outline: "border border-slate-300",
+  default: "bg-primary text-primary-foreground",
+  secondary: "bg-muted text-foreground",
+  outline: "border border-border",
 };
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
