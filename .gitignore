@@ -7,3 +7,12 @@ coverage
 *.log
 .env
 .env.local
+docs/
+
+# Vite build output for the MCP server SPA (see packages/ui/vite.config.ts)
+packages/mcp-server/spa/
+
+# Playwright
+test-results/
+playwright-report/
+

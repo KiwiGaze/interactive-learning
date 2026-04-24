@@ -6,7 +6,7 @@
       "**/node_modules/**",
       "**/.turbo/**",
       "**/coverage/**",
-      ".claude/**",
+      "**/test-results/**",
       "packages/mcp-server/spa/**"
     ]
   },
