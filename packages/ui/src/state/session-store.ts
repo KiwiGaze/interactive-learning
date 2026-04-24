@@ -19,11 +19,14 @@ export const useSessionStore = create<SessionUiState>((set) => ({
   connected: false,
   sessionEnded: false,
   applySnapshot: (snap) =>
-    set({
-      sessionId: snap.id,
-      cursor: snap.cursor,
-      slots: [...snap.slots],
-      connected: snap.browser_connected,
+    set((state) => {
+      if (state.cursor && snap.cursor && snap.cursor < state.cursor) return state;
+      return {
+        sessionId: snap.id,
+        cursor: snap.cursor,
+        slots: [...snap.slots],
+        connected: snap.browser_connected,
+      };
     }),
   onRemoteEvent: (e) => {
     if (e.type === "session.ended") {

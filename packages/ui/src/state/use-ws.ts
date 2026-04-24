@@ -18,19 +18,32 @@ export function useSessionWebSocket(): void {
     let ws: WebSocket | null = null;
     let backoff = 500;
     let closed = false;
+    let reconcilePromise: Promise<void> | undefined;
+
+    function reconcileSnapshot(activeSocket: WebSocket): Promise<void> {
+      reconcilePromise ??= fetchSessionSnapshot()
+        .then((snap) => {
+          if (!closed && ws === activeSocket) useSessionStore.getState().applySnapshot(snap);
+        })
+        .catch(() => {
+          // best-effort reconcile; next event or reconnect will retry
+        })
+        .finally(() => {
+          reconcilePromise = undefined;
+        });
+      return reconcilePromise;
+    }
 
     function connect(): void {
-      ws = new WebSocket(`ws://${location.host}/ws`);
+      const cursor = useSessionStore.getState().cursor;
+      const since = cursor ? `?since=${encodeURIComponent(cursor)}` : "";
+      ws = new WebSocket(`ws://${location.host}/ws${since}`);
       window.__il_ws = ws;
+      const activeSocket = ws;
       ws.onopen = async () => {
         setConn(true);
         backoff = 500;
-        try {
-          const snap = await fetchSessionSnapshot();
-          useSessionStore.getState().applySnapshot(snap);
-        } catch {
-          // ignore — best-effort reconciliation
-        }
+        await reconcileSnapshot(activeSocket);
       };
       ws.onclose = () => {
         setConn(false);
@@ -46,11 +59,7 @@ export function useSessionWebSocket(): void {
           if (data.kind !== "event" || !data.event) return;
           onRemote(data.event);
           if (data.event.type === "component.rendered" || data.event.type === "component.updated") {
-            void fetchSessionSnapshot()
-              .then((snap) => useSessionStore.getState().applySnapshot(snap))
-              .catch(() => {
-                // best-effort reconcile; next event or reconnect will retry
-              });
+            void reconcileSnapshot(activeSocket);
           }
         } catch {
           // ignore malformed frames

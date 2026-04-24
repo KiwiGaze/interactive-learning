@@ -35,4 +35,27 @@ describe("reconnect reconcile", () => {
     expect(useSessionStore.getState().cursor).toBe("018f-b");
     expect(useSessionStore.getState().slots).toHaveLength(1);
   });
+
+  it("ignores snapshots older than the current cursor", () => {
+    useSessionStore.setState({
+      sessionId: "s1",
+      cursor: "018f-c",
+      slots: [{ slot_id: "slot-1", version: 2, type: "Markdown", props: { content: "new" } }],
+      connected: true,
+      sessionEnded: false,
+    });
+
+    useSessionStore.getState().applySnapshot({
+      id: "s1",
+      started_at: 0,
+      cursor: "018f-b",
+      browser_connected: true,
+      last_agent_tool_call: 0,
+      slots: [{ slot_id: "slot-1", version: 1, type: "Markdown", props: { content: "old" } }],
+      recent_events: [],
+    });
+
+    expect(useSessionStore.getState().cursor).toBe("018f-c");
+    expect(useSessionStore.getState().slots[0]?.version).toBe(2);
+  });
 });
