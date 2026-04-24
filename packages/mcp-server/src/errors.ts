@@ -22,9 +22,9 @@ export function toJsonRpcError(cause: unknown, extra: Record<string, unknown> = 
     return err;
   }
   if (cause instanceof Error) {
-    // Read domainCode before mutating (err === cause, so err.code overwrites cause.code)
     const domainCode = (cause as { code?: unknown }).code;
-    const err = cause as JsonRpcError;
+    const err = new Error(cause.message) as JsonRpcError;
+    err.name = cause.name;
     err.code = -32602;
     err.data = {
       reason: typeof domainCode === "string" ? domainCode : cause.name,

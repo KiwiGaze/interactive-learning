@@ -6,14 +6,31 @@ import { IdleWatchdog, Lifecycle } from "./lifecycle.js";
 import { createLogger } from "./log.js";
 import { buildServer } from "./server.js";
 
+export function registerSignalHandlers(shutdown: (code: number) => void): () => void {
+  const onSignal = (): void => shutdown(0);
+  process.once("SIGTERM", onSignal);
+  process.once("SIGINT", onSignal);
+  return () => {
+    process.off("SIGTERM", onSignal);
+    process.off("SIGINT", onSignal);
+  };
+}
+
 export async function main(): Promise<void> {
   const log = createLogger();
-  const { server, store, catalog } = buildServer();
+  const lifecycleRef: { current?: Lifecycle } = {};
+  const { server, store, catalog } = buildServer({
+    onRenderComponent: async () => {
+      if (!lifecycleRef.current) throw new Error("Lifecycle not initialized");
+      await lifecycleRef.current.ensureHttp();
+    },
+  });
   registerDefaultCatalog(catalog);
 
   const here = path.dirname(fileURLToPath(import.meta.url));
   const spaDir = path.resolve(here, "..", "spa");
   const lifecycle = new Lifecycle({ spaDir, store, catalog });
+  lifecycleRef.current = lifecycle;
 
   const watchdog = new IdleWatchdog(store, {
     warnMs: 25 * 60_000,
@@ -35,6 +52,9 @@ export async function main(): Promise<void> {
     watchdog.stop();
     process.exit(code);
   }
+  registerSignalHandlers((code) => {
+    void shutdown(code);
+  });
 
   const transport = new StdioServerTransport();
   transport.onclose = () => {

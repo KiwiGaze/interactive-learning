@@ -27,6 +27,7 @@ import { waitForEventHandler } from "./tools/wait-for-event.js";
 export interface BuildServerOptions {
   store?: SessionStore;
   catalog?: CatalogRegistry;
+  onRenderComponent?: () => Promise<void>;
 }
 
 export function buildServer(opts: BuildServerOptions = {}): {
@@ -74,6 +75,7 @@ export function buildServer(opts: BuildServerOptions = {}): {
           catalog,
           input: (req.params.arguments ?? {}) as z.input<typeof RenderComponentInputSchema>,
         });
+        await opts.onRenderComponent?.();
         return { content: [{ type: "text", text: JSON.stringify(out) }] };
       }
       case "update_component": {

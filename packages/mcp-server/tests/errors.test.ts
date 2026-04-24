@@ -29,6 +29,15 @@ describe("toJsonRpcError", () => {
     expect(err.data.reason).toBe("UNKNOWN_COMPONENT");
   });
 
+  it("returns a new error object when preserving domain codes", () => {
+    const domain = new Error("CURSOR_EXPIRED: stale") as Error & { code?: string };
+    domain.code = "CURSOR_EXPIRED";
+    const err = toJsonRpcError(domain);
+    expect(err).not.toBe(domain);
+    expect(domain.code).toBe("CURSOR_EXPIRED");
+    expect(err.data.reason).toBe("CURSOR_EXPIRED");
+  });
+
   it("wraps unknown (non-Error) throws as internal -32603", () => {
     const err = toJsonRpcError("string error");
     expect(err.code).toBe(-32603);
