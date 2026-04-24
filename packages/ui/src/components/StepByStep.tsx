@@ -2,7 +2,14 @@ import type { StepByStepProps } from "@interactive-learning/protocol";
 import { StepByStepPropsSchema } from "@interactive-learning/protocol";
 import { useState } from "react";
 import { sendUserEvent } from "../state/use-ws.js";
+import { Markdown } from "./Markdown.js";
 import { Button } from "./ui/button.js";
+
+function panelClasses(open: boolean): string {
+  const base = "grid transition-[grid-template-rows,opacity] duration-200";
+  if (open) return `${base} grid-rows-[1fr] border-t border-border opacity-100`;
+  return `${base} grid-rows-[0fr] opacity-0`;
+}
 
 export function StepByStep({
   slotId,
@@ -49,27 +56,35 @@ export function StepByStep({
         {parsed.steps.map((s, i) => {
           const disabled = isDisabled(i);
           const isOpen = open.has(s.id);
+          const contentId = `${slotId}-step-${s.id}`;
           return (
-            <li key={s.id} className="rounded border border-slate-200 bg-white">
+            <li key={s.id} className="rounded border border-border bg-card">
               <button
                 type="button"
                 onClick={() => !disabled && toggle(s.id)}
                 disabled={disabled}
                 aria-expanded={isOpen}
-                className="w-full px-4 py-2 text-left font-medium disabled:cursor-not-allowed disabled:text-slate-400"
+                aria-controls={contentId}
+                className="w-full px-4 py-2 text-left font-medium disabled:cursor-not-allowed disabled:text-muted-foreground"
               >
                 {s.heading}
               </button>
-              {isOpen ? (
-                <div className="space-y-3 border-t border-slate-200 px-4 py-3 text-sm">
-                  <div>{s.content}</div>
-                  {!done.has(s.id) ? (
-                    <Button size="sm" variant="outline" onClick={() => markDone(s.id)}>
-                      Mark done
-                    </Button>
-                  ) : null}
+              <div id={contentId} className={panelClasses(isOpen)} hidden={!isOpen}>
+                <div className="min-h-0 overflow-hidden">
+                  <div className="space-y-3 px-4 py-3 text-sm">
+                    <Markdown
+                      slotId={slotId}
+                      slotVersion={slotVersion}
+                      props={{ content: s.content }}
+                    />
+                    {!done.has(s.id) ? (
+                      <Button size="sm" variant="outline" onClick={() => markDone(s.id)}>
+                        Mark done
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
-              ) : null}
+              </div>
             </li>
           );
         })}

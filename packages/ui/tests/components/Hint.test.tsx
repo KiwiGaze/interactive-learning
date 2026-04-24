@@ -11,7 +11,9 @@ describe("Hint", () => {
   it("emits hint.revealed when user clicks", async () => {
     const user = userEvent.setup();
     render(<Hint slotId="s" slotVersion={1} props={{ content: "Answer: 42" }} />);
-    await user.click(screen.getByRole("button"));
+    const toggle = screen.getByRole("button");
+    expect(toggle).toHaveAttribute("aria-controls", "s-hint-1");
+    await user.click(toggle);
     expect(sendUserEvent).toHaveBeenCalledWith("hint.revealed", { id: "s", version: 1 }, {});
     expect(screen.getByText(/Answer: 42/)).toBeInTheDocument();
   });

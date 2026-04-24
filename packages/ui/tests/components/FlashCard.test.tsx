@@ -40,4 +40,28 @@ describe("FlashCard", () => {
       { card_ids_seen: ["c1"] },
     );
   });
+
+  it("exposes front/back faces and flipped state", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <FlashCard
+        slotId="s1"
+        slotVersion={1}
+        props={{
+          deck_id: "d1",
+          cards: [{ id: "c1", front: "Front", back: "Back" }],
+          mode: "study",
+          show_progress: false,
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Front")).toBeInTheDocument();
+    expect(screen.getByText("Back")).toBeInTheDocument();
+    expect(container.querySelector('[data-state="front"]')).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /flip/i }));
+
+    expect(container.querySelector('[data-state="flipped"]')).toBeInTheDocument();
+  });
 });

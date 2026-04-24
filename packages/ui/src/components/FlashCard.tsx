@@ -8,6 +8,12 @@ import { Progress } from "./ui/progress.js";
 
 type Rating = "again" | "hard" | "good" | "easy";
 
+function flipClasses(flipped: boolean): string {
+  const base = "relative min-h-24 [transform-style:preserve-3d] transition-transform duration-300";
+  if (flipped) return `${base} [transform:rotateY(180deg)]`;
+  return base;
+}
+
 export function FlashCard({
   slotId,
   slotVersion,
@@ -41,7 +47,22 @@ export function FlashCard({
   return (
     <Card>
       <CardContent className="space-y-4">
-        <p className="text-base">{flipped ? card.back : card.front}</p>
+        <div className="perspective-[1000px]">
+          <div data-state={flipped ? "flipped" : "front"} className={flipClasses(flipped)}>
+            <div
+              aria-hidden={flipped}
+              className="absolute inset-0 rounded border border-border p-4 [backface-visibility:hidden]"
+            >
+              {card.front}
+            </div>
+            <div
+              aria-hidden={!flipped}
+              className="absolute inset-0 rounded border border-border p-4 [backface-visibility:hidden] [transform:rotateY(180deg)]"
+            >
+              {card.back}
+            </div>
+          </div>
+        </div>
         {!flipped ? (
           <Button onClick={flip}>Flip</Button>
         ) : (

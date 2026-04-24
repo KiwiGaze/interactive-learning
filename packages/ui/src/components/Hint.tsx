@@ -12,6 +12,7 @@ export function Hint({
   const parsed: HintProps = HintPropsSchema.parse(props);
   const [open, setOpen] = useState(false);
   const slot = { id: slotId, version: slotVersion };
+  const contentId = `${slotId}-hint-${slotVersion}`;
 
   const toggle = (): void => {
     if (!open) sendUserEvent("hint.revealed", slot, {});
@@ -20,11 +21,17 @@ export function Hint({
 
   return (
     <div className="my-2">
-      <Button variant="outline" size="sm" onClick={toggle} aria-expanded={open}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={toggle}
+        aria-expanded={open}
+        aria-controls={contentId}
+      >
         {parsed.label}
       </Button>
       {open ? (
-        <div className="mt-2 rounded border border-slate-200 bg-slate-50 p-3 text-sm">
+        <div id={contentId} className="mt-2 rounded border border-border bg-muted p-3 text-sm">
           {parsed.content}
         </div>
       ) : null}
