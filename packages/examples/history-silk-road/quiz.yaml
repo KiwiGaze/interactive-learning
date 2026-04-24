@@ -1,0 +1,11 @@
+questions:
+  - id: zhang-qian
+    kind: single_choice
+    prompt: Which Han envoy helped open regular westward contact?
+    options:
+      - id: zhang-qian
+        label: Zhang Qian
+        is_correct: true
+      - id: marco-polo
+        label: Marco Polo
+        is_correct: false

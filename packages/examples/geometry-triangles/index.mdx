@@ -17,3 +17,15 @@ A triangle is a polygon with three sides and three angles. The sum of interior a
 ## Triangle inequality
 
 For any triangle with sides a, b, c, the sum of any two sides must exceed the third: a + b > c, a + c > b, b + c > a.
+
+<Diagram source="graph TD; A[Three sides]-->B[Three angles]; B-->C[180 degrees total]" caption="Triangle facts flow" />
+
+<Quiz
+  title="Triangle classification"
+  questions='[{"id":"equilateral","kind":"single_choice","prompt":"What is true of an equilateral triangle?","options":[{"id":"all-equal","label":"All sides are equal","is_correct":true},{"id":"one-right","label":"It always has one right angle","is_correct":false}]}]'
+/>
+
+<StepByStep
+  title="Check triangle inequality"
+  steps='[{"id":"pick","heading":"Pick two sides","content":"Add any two side lengths together.","initially_open":true},{"id":"compare","heading":"Compare with the third","content":"The sum must be greater than the remaining side."}]'
+/>

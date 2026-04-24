@@ -23,3 +23,15 @@ def slow_add(a, b):
 ```
 
 The `@timer` syntax is equivalent to `slow_add = timer(slow_add)`.
+
+<Hint label="Decorator clue" content="A decorator replaces a function with a wrapped version." />
+
+<Quiz
+  title="Decorator check"
+  questions='[{"id":"decorator-purpose","kind":"single_choice","prompt":"What does a decorator receive first?","options":[{"id":"function","label":"A function","is_correct":true},{"id":"module","label":"A module","is_correct":false}],"explanation":"Decorators are called with the function object and return a replacement."}]'
+/>
+
+<StepByStep
+  title="Read the wrapper"
+  steps='[{"id":"capture","heading":"Capture the original","content":"`timer(fn)` receives the original function.","initially_open":true},{"id":"return","heading":"Return a wrapper","content":"The wrapper calls `fn` and adds timing behavior."}]'
+/>
